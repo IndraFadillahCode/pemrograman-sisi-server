@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Summary</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container py-4">
+    <h2>Inventory Summary</h2>
+
+    <!-- System Summary -->
+    <h4>System Summary</h4>
+    <div id="systemSummary" class="mb-4"></div>
+
+    <!-- Low Stock Items -->
+    <h4>Low Stock Items (Threshold: <span id="lowStockThreshold">under 5</span>)</h4>
+    <table class="table table-bordered mb-4" id="lowStockTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Quantity</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <!-- Items by Category -->
+    <h4>Items by Category</h4>
+    <select id="categorySelect" class="form-select mb-3"></select>
+    <table class="table table-bordered mb-4" id="categoryItemsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Quantity</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <!-- Category Summary -->
+    <h4>Category Summary</h4>
+    <table class="table table-bordered mb-4" id="categorySummaryTable">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Item Count</th>
+          <th>Total Value</th>
+          <th>Average Price</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <!-- Supplier Summary -->
+    <h4>Supplier Summary</h4>
+    <table class="table table-bordered mb-4" id="supplierSummaryTable">
+      <thead>
+        <tr>
+          <th>Supplier</th>
+          <th>Item Count</th>
+          <th>Total Value</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const lowStockThreshold = 5;
+
+      // Fetch system summary
+      fetch('http://localhost:3000/api/items/summary/system')
+        .then(res => res.json())
+        .then(data => {
+          const summaryDiv = document.getElementById('systemSummary');
+          summaryDiv.innerHTML = `
+            <p>Total Items: ${data.total_items}</p>
+            <p>Total Categories: ${data.total_categories}</p>
+            <p>Total Suppliers: ${data.total_suppliers}</p>
+            <p>Total Stock Value: ${data.total_stock_value}</p>
+          `;
+        });
+
+      // Fetch low stock items
+      fetch(`http://localhost:3000/api/items/low-stock?threshold=${lowStockThreshold}`)
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.querySelector('#lowStockTable tbody');
+          tbody.innerHTML = '';
+          data.forEach(item => {
+            tbody.innerHTML += `
+              <tr>
+                <td>${item.id}</td>
+                <td>${item.name}</td>
+                <td>${item.quantity}</td>
+              </tr>
+            `;
+          });
+        });
+
+      // Fetch categories for dropdown
+      fetch('http://localhost:3000/api/categories')
+        .then(res => res.json())
+        .then(data => {
+          const select = document.getElementById('categorySelect');
+          select.innerHTML = '<option value="">Select Category</option>';
+          data.forEach(category => {
+            select.innerHTML += `<option value="${category.id}">${category.name}</option>`;
+          });
+
+          // Fetch items by category when category is selected
+          select.addEventListener('change', () => {
+            const categoryId = select.value;
+            if (!categoryId) return;
+
+            fetch(`http://localhost:3000/api/items/by-category/${categoryId}`)
+              .then(res => res.json())
+              .then(data => {
+                const tbody = document.querySelector('#categoryItemsTable tbody');
+                tbody.innerHTML = '';
+                data.forEach(item => {
+                  tbody.innerHTML += `
+                    <tr>
+                      <td>${item.id}</td>
+                      <td>${item.name}</td>
+                      <td>${item.quantity}</td>
+                      <td>${item.price}</td>
+                    </tr>
+                  `;
+                });
+              });
+          });
+        });
+
+      // Fetch category summary
+      fetch('http://localhost:3000/api/categories/summary')
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.querySelector('#categorySummaryTable tbody');
+          tbody.innerHTML = '';
+          data.forEach(summary => {
+            tbody.innerHTML += `
+              <tr>
+                <td>${summary.name}</td>
+                <td>${summary.item_count}</td>
+                <td>${summary.total_value}</td>
+                <td>${summary.average_price}</td>
+              </tr>
+            `;
+          });
+        });
+
+      // Fetch supplier summary
+      fetch('http://localhost:3000/api/suppliers/summary')
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.querySelector('#supplierSummaryTable tbody');
+          tbody.innerHTML = '';
+          data.forEach(summary => {
+            tbody.innerHTML += `
+              <tr>
+                <td>${summary.name}</td>
+                <td>${summary.item_count}</td>
+                <td>${summary.total_value}</td>
+              </tr>
+            `;
+          });
+        });
+    });
+  </script>
+</body>
+</html>
