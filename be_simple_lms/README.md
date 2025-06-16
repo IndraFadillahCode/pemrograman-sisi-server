@@ -28,7 +28,3 @@ You can download and view the full Locust HTML report here:
 2. Install dependencies.
 3. Run the server.
 4. (Optional) Run load tests with Locust.
-
-## License
-
-MIT
