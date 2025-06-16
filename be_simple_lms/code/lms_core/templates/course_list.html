@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Course List</title>
+</head>
+<body>
+    <h1>Daftar Kursus</h1>
+    <ul>
+        {% for course in courses %}
+            <li>{{ course.name }} - {{ course.description }} - Rp{{ course.price }}</li>
+        {% empty %}
+            <li>Tidak ada kursus.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
